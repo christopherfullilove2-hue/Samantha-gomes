@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Samantha Gomez</title>
+  <style>
+    body {
+      background: #101827;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px 15px;
+    }
+    button {
+      padding: 15px 25px;
+      border: 0;
+      border-radius: 12px;
+      background: #278bff;
+      color: white;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>💙 Samantha Gomez</h1>
+  <p>Your personal voice assistant</p>
+  <button onclick="startListening()">🎤 Talk to Samantha</button>
+  <p id="status">Ready</p>
+  <script>
+    function startListening() {
+      const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        document.getElementById("status").textContent =
+          "Speech recognition is not supported in this browser.";
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.onresult = (event) => {
+        document.getElementById("status").textContent =
+          "You said: " + event.results[0][0].transcript;
+      };
+      recognition.onerror = (event) => {
+        document.getElementById("status").textContent =
+          "Microphone error: " + event.error;
+      };
+      recognition.start();
+    }
+  </script>
+</body>
+</html>
