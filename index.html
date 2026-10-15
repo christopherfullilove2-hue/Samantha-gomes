@@ -42,23 +42,13 @@
 
       const recognition = new SpeechRecognition();
       recognition.lang = "en-US";
-      recognition.onresult = (event) => {
-        document.getElementById("status").textContent =
-          "You said: " + event.results[0][0].transcript;
-      };
-
+      recognition.onresult 
 recognition.onresult = (event) => {
   document.getElementById("status").textContent =
     "You said: " + event.results[0][0].transcript;
   speakBack();
 };
-
-  document.getElementById("status").textContent =
-    "You said: " + event.results[0][0].transcript;
-  speakBack();
-};
-
-      recognition.onerror = (event) => {
+ recognition.onerror = (event) => {
         document.getElementById("status").textContent =
           "Microphone error: " + event.error;
       };
