@@ -55,3 +55,19 @@
   </script>
 </body>
 </html>
+
+function speakBack() {
+  if (!("speechSynthesis" in window)) {
+    alert("Voice output is not supported.");
+    return;
+  }
+
+  const voice = new SpeechSynthesisUtterance(
+    "Hello! I am Samantha Gomez. I can hear you!"
+  );
+  voice.lang = "en-US";
+  voice.rate = 0.95;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(voice);
+}
+speak back;
