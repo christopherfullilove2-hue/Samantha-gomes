@@ -2,160 +2,391 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-  <title>Samantha Gomez</title>
-
-  <style>
-    body {
-      background: #101827;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px 15px;
-    }
-
-    h1 {
-      color: #69b7ff;
-    }
-
-    button {
-      padding: 15px 25px;
-      border: none;
-      border-radius: 12px;
-      background: #278bff;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
-    }
-
-    #status {
-      margin-top: 25px;
-      line-height: 1.6;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Samantha Gomez</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #101827;
+    color: #eef5ff;
+    font-family: Arial, sans-serif;
+  }
+  main {
+    max-width: 750px;
+    margin: auto;
+    padding: 24px 16px;
+  }
+  h1 { color: #69b7ff; text-align: center; }
+  h2 { font-size: 20px; }
+  .subtitle { text-align: center; color: #c4d0e0; }
+  .panel {
+    background: #17243a;
+    border: 1px solid #30425f;
+    border-radius: 16px;
+    padding: 18px;
+    margin: 16px 0;
+  }
+  button {
+    background: #278bff;
+    color: white;
+    border: 0;
+    border-radius: 10px;
+    padding: 13px 16px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  button:disabled { opacity: .5; }
+  .secondary { background: #344763; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; }
+  .status { color: #9cceff; font-weight: bold; }
+  .small { color: #c4d0e0; font-size: 13px; line-height: 1.5; }
+  #log {
+    height: 300px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bubble {
+    padding: 12px;
+    border-radius: 12px;
+    max-width: 95%;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .user { align-self: flex-end; background: #1f5eab; }
+  .assistant { align-self: flex-start; background: #283950; }
+  form { display: flex; gap: 8px; margin-top: 12px; }
+  input[type="text"], input[type="url"] {
+    flex: 1;
+    min-width: 0;
+    padding: 12px;
+    background: #0c1728;
+    color: white;
+    border: 1px solid #49617e;
+    border-radius: 10px;
+  }
+  label { display: block; margin-top: 12px; }
+</style>
 </head>
-
 <body>
+<main>
   <h1>💙 Samantha Gomez</h1>
-  <p>Your personal voice assistant</p>
+  <p class="subtitle">Your personal AI voice assistant</p>
 
-  <button onclick="startListening()">
-    🎤 Talk to Samantha
-  </button>
+  <section class="panel">
+    <p id="status" class="status">Ready</p>
+    <p id="heard" class="small">Tap the microphone or type a message.</p>
+    <div class="controls">
+      <button id="mic">🎤 Talk to Samantha</button>
+      <button id="stop" class="secondary">■ Stop</button>
+      <button id="voice" class="secondary">🔊 Voice: On</button>
+    </div>
+    <label>
+      <input id="wake" type="checkbox" checked>
+      Require "Samantha" at the start of voice requests
+    </label>
+  </section>
 
-  <p id="status">Ready</p>
+  <section class="panel">
+    <h2>Conversation</h2>
+    <div id="log" role="log" aria-live="polite"></div>
+    <form id="chatForm">
+      <input id="message" type="text"
+        placeholder="Ask Samantha anything..." required>
+      <button type="submit">Send</button>
+    </form>
+  </section>
 
-  <script>
-    const statusText =
-      document.getElementById("status");
+  <section class="panel">
+    <h2>🧠 AI Brain Connection</h2>
+    <p class="small">
+      Connect a secure AI server for general questions.
+      Never put secret API keys in this website.
+    </p>
+    <form id="backendForm">
+      <input id="endpoint" type="url"
+        placeholder="https://your-server.example/api/chat">
+      <button type="submit">Connect</button>
+    </form>
+    <p id="connection" class="small">
+      Local assistant mode is active.
+    </p>
+  </section>
 
-    const SpeechRecognition =
-      window.SpeechRecognition ||
-      window.webkitSpeechRecognition;
+  <p class="small">
+    Bluetooth audio is managed by Android.
+    Microphone access requires browser permission.
+    Listening with the screen locked is not guaranteed.
+    The assistant cannot operate while the phone is powered off.
+  </p>
+</main>
 
-    let recognition;
+<script>
+"use strict";
 
-    function speakBack(message) {
-      if (!("speechSynthesis" in window)) {
-        statusText.textContent =
-          "Voice output is not supported.";
-        return;
-      }
+const $ = id => document.getElementById(id);
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
 
-      const speech =
-        new SpeechSynthesisUtterance(message);
+let recognition = null;
+let listening = false;
+let voiceOn = true;
+let busy = false;
+let history = [];
+let backend = sessionStorage.getItem("samanthaBackend") || "";
 
-      speech.lang = "en-US";
-      speech.rate = 0.95;
-      speech.pitch = 1.1;
-      speech.volume = 1;
+$("endpoint").value = backend;
 
-      const voices =
-        window.speechSynthesis.getVoices();
+function setStatus(message) {
+  $("status").textContent = message;
+}
 
-      const preferredVoice = voices.find(
-        voice =>
-          voice.lang.startsWith("en") &&
-          /female|samantha|zira|jenny|aria/i
-            .test(voice.name)
-      );
+function addMessage(role, message) {
+  const bubble = document.createElement("div");
+  bubble.className = "bubble " + role;
+  bubble.textContent =
+    (role === "user" ? "You: " : "Samantha: ") + message;
+  $("log").appendChild(bubble);
+  $("log").scrollTop = $("log").scrollHeight;
+}
 
-      if (preferredVoice) {
-        speech.voice = preferredVoice;
-      }
+function speak(message) {
+  if (!voiceOn || !("speechSynthesis" in window)) return;
 
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(speech);
+  speechSynthesis.cancel();
+
+  const speech = new SpeechSynthesisUtterance(message);
+  speech.lang = "en-US";
+  speech.rate = 0.95;
+  speech.pitch = 1.08;
+
+  const voices = speechSynthesis.getVoices();
+  const preferred = voices.find(voice =>
+    voice.lang.startsWith("en") &&
+    /samantha|zira|jenny|aria|female/i.test(voice.name)
+  );
+
+  if (preferred) speech.voice = preferred;
+  speechSynthesis.speak(speech);
+}
+
+function stopAll() {
+  if (recognition && listening) recognition.abort();
+  listening = false;
+  speechSynthesis?.cancel();
+  $("mic").disabled = false;
+  setStatus("Stopped");
+}
+
+function localAnswer(question) {
+  const q = question.toLowerCase().trim();
+
+  if (/^(hello|hi|hey|good morning|good evening)[!. ]*$/.test(q)) {
+    return "Hello! I'm Samantha Gomez. How can I help?";
+  }
+
+  if (/\b(time|clock)\b/.test(q)) {
+    return "The time is " +
+      new Date().toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      });
+  }
+
+  if (/\b(date|today|day of the week)\b/.test(q)) {
+    return "Today is " +
+      new Date().toLocaleDateString([], {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+  }
+
+  if (/\b(who are you|your name)\b/.test(q)) {
+    return "I am Samantha Gomez, your personal voice assistant.";
+  }
+
+  if (/\b(help|what can you do)\b/.test(q)) {
+    return "I can listen, speak, show conversations, and answer basic commands. Connect my AI server for more advanced questions.";
+  }
+
+  return "I heard your question, but my AI brain is not connected yet. Please connect a secure AI backend so I can answer it.";
+}
+
+async function askSamantha(question, source = "text") {
+  const raw = question.trim();
+  if (!raw || busy) return;
+
+  if (source === "voice" && $("wake").checked) {
+    if (!/^\s*(hey\s+)?samantha\b[\s,!.?:-]*/i.test(raw)) {
+      setStatus('Waiting for "Samantha"');
+      return;
     }
+  }
 
-    function startListening() {
-      if (!SpeechRecognition) {
-        statusText.textContent =
-          "Speech recognition is not supported.";
-        return;
-      }
+  const cleaned = source === "voice"
+    ? raw.replace(/^\s*(hey\s+)?samantha\b[\s,!.?:-]*/i, "").trim()
+    : raw;
 
-      if (recognition) {
-        recognition.abort();
-      }
+  if (!cleaned) {
+    const reply = "Yes, I'm listening. What's your question?";
+    addMessage("assistant", reply);
+    speak(reply);
+    return;
+  }
 
-      recognition = new SpeechRecognition();
-      recognition.lang = "en-US";
-      recognition.continuous = false;
-      recognition.interimResults = false;
+  $("heard").textContent = "You said: " + raw;
+  addMessage("user", cleaned);
 
-      statusText.textContent =
-        "🎤 Listening...";
+  if (/^(stop|stop listening|be quiet|cancel)$/i.test(cleaned)) {
+    stopAll();
+    return;
+  }
 
-      recognition.onresult = (event) => {
-        const words =
-          event.results[0][0].transcript;
+  busy = true;
+  setStatus("Thinking...");
+  let reply = "";
 
-        statusText.textContent =
-          "You said: " + words;
-
-        const message = words.toLowerCase();
-
-        if (message.includes("samantha")) {
-          speakBack(
-            "Hello! I am Samantha Gomez. " +
-            "I can hear you!"
-          );
-        } else if (message.includes("hello")) {
-          speakBack("Hello! How can I help you?");
-        } else if (message.includes("time")) {
-          speakBack(
-            "The time is " +
-            new Date().toLocaleTimeString()
-          );
-        } else {
-          speakBack(
-            "I heard you say " + words
-          );
-        }
-      };
-
-      recognition.onerror = (event) => {
-        statusText.textContent =
-          "Microphone error: " + event.error;
-      };
-
-      recognition.onend = () => {
-        if (statusText.textContent ===
-            "🎤 Listening...") {
-          statusText.textContent = "Ready";
-        }
-      };
+  try {
+    if (backend) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
 
       try {
-        recognition.start();
-      } catch (error) {
-        statusText.textContent =
-          "Could not start microphone.";
+        const response = await fetch(backend, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: cleaned,
+            history: history.slice(-12)
+          }),
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          throw new Error("Server error: " + response.status);
+        }
+
+        const data = await response.json();
+
+        if (typeof data.reply !== "string" || !data.reply.trim()) {
+          throw new Error("No valid reply from server");
+        }
+
+        reply = data.reply.trim();
+      } finally {
+        clearTimeout(timeout);
       }
+    } else {
+      reply = localAnswer(cleaned);
     }
-  </script>
+  } catch (error) {
+    reply = "I couldn't reach my AI server. Please check the server connection.";
+  }
+
+  history.push(
+    { role: "user", content: cleaned },
+    { role: "assistant", content: reply }
+  );
+  history = history.slice(-20);
+
+  addMessage("assistant", reply);
+  speak(reply);
+  setStatus("Ready");
+  busy = false;
+}
+
+function startListening() {
+  if (!SpeechRecognition) {
+    setStatus("Speech recognition isn't supported in this browser.");
+    return;
+  }
+
+  if (listening) return;
+
+  speechSynthesis?.cancel();
+
+  recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onstart = () => {
+    listening = true;
+    $("mic").disabled = true;
+    setStatus("🎤 Listening...");
+  };
+
+  recognition.onresult = event => {
+    const words = event.results[0][0].transcript;
+    listening = false;
+    askSamantha(words, "voice");
+  };
+
+  recognition.onerror = event => {
+    setStatus("Microphone error: " + event.error);
+  };
+
+  recognition.onend = () => {
+    listening = false;
+    $("mic").disabled = false;
+    if ($("status").textContent === "🎤 Listening...") {
+      setStatus("Ready — tap to speak again");
+    }
+  };
+
+  try {
+    recognition.start();
+  } catch (error) {
+    setStatus("Could not start microphone: " + error.message);
+  }
+}
+
+$("mic").addEventListener("click", startListening);
+$("stop").addEventListener("click", stopAll);
+
+$("voice").addEventListener("click", () => {
+  voiceOn = !voiceOn;
+  $("voice").textContent = voiceOn
+    ? "🔊 Voice: On"
+    : "🔇 Voice: Off";
+  if (!voiceOn) speechSynthesis?.cancel();
+});
+
+$("chatForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const message = $("message").value;
+  $("message").value = "";
+  askSamantha(message);
+});
+
+$("backendForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const url = $("endpoint").value.trim();
+
+  if (url && !url.startsWith("https://")) {
+    $("connection").textContent =
+      "Please use a secure HTTPS server URL.";
+    return;
+  }
+
+  backend = url;
+  sessionStorage.setItem("samanthaBackend", backend);
+
+  $("connection").textContent = backend
+    ? "Server URL saved. Ask a question to test it."
+    : "Local assistant mode is active.";
+});
+
+addMessage(
+  "assistant",
+  'Hello! I am Samantha Gomez. Say "Samantha" followed by your question, or type below.'
+);
+</script>
 </body>
 </html>
