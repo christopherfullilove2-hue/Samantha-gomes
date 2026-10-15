@@ -3,8 +3,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
   <title>Samantha Gomez</title>
+
   <style>
     body {
       background: #101827;
@@ -13,63 +15,147 @@
       text-align: center;
       padding: 50px 15px;
     }
+
+    h1 {
+      color: #69b7ff;
+    }
+
     button {
       padding: 15px 25px;
-      border: 0;
+      border: none;
       border-radius: 12px;
       background: #278bff;
       color: white;
       font-size: 18px;
+      cursor: pointer;
+    }
+
+    #status {
+      margin-top: 25px;
+      line-height: 1.6;
     }
   </style>
 </head>
+
 <body>
   <h1>💙 Samantha Gomez</h1>
   <p>Your personal voice assistant</p>
-  <button onclick="startListening()">🎤 Talk to Samantha</button>
-  <p id="status">Ready</p>
-  <script>
-    function startListening() {
-      const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
 
-      if (!SpeechRecognition) {
-        document.getElementById("status").textContent =
-          "Speech recognition is not supported in this browser.";
+  <button onclick="startListening()">
+    🎤 Talk to Samantha
+  </button>
+
+  <p id="status">Ready</p>
+
+  <script>
+    const statusText =
+      document.getElementById("status");
+
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+    let recognition;
+
+    function speakBack(message) {
+      if (!("speechSynthesis" in window)) {
+        statusText.textContent =
+          "Voice output is not supported.";
         return;
       }
 
-      const recognition = new SpeechRecognition();
+      const speech =
+        new SpeechSynthesisUtterance(message);
+
+      speech.lang = "en-US";
+      speech.rate = 0.95;
+      speech.pitch = 1.1;
+      speech.volume = 1;
+
+      const voices =
+        window.speechSynthesis.getVoices();
+
+      const preferredVoice = voices.find(
+        voice =>
+          voice.lang.startsWith("en") &&
+          /female|samantha|zira|jenny|aria/i
+            .test(voice.name)
+      );
+
+      if (preferredVoice) {
+        speech.voice = preferredVoice;
+      }
+
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(speech);
+    }
+
+    function startListening() {
+      if (!SpeechRecognition) {
+        statusText.textContent =
+          "Speech recognition is not supported.";
+        return;
+      }
+
+      if (recognition) {
+        recognition.abort();
+      }
+
+      recognition = new SpeechRecognition();
       recognition.lang = "en-US";
-      recognition.onresult 
-recognition.onresult = (event) => {
-  document.getElementById("status").textContent =
-    "You said: " + event.results[0][0].transcript;
-  speakBack();
-};
- recognition.onerror = (event) => {
-        document.getElementById("status").textContent =
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      statusText.textContent =
+        "🎤 Listening...";
+
+      recognition.onresult = (event) => {
+        const words =
+          event.results[0][0].transcript;
+
+        statusText.textContent =
+          "You said: " + words;
+
+        const message = words.toLowerCase();
+
+        if (message.includes("samantha")) {
+          speakBack(
+            "Hello! I am Samantha Gomez. " +
+            "I can hear you!"
+          );
+        } else if (message.includes("hello")) {
+          speakBack("Hello! How can I help you?");
+        } else if (message.includes("time")) {
+          speakBack(
+            "The time is " +
+            new Date().toLocaleTimeString()
+          );
+        } else {
+          speakBack(
+            "I heard you say " + words
+          );
+        }
+      };
+
+      recognition.onerror = (event) => {
+        statusText.textContent =
           "Microphone error: " + event.error;
       };
-      recognition.start();
+
+      recognition.onend = () => {
+        if (statusText.textContent ===
+            "🎤 Listening...") {
+          statusText.textContent = "Ready";
+        }
+      };
+
+      try {
+        recognition.start();
+      } catch (error) {
+        statusText.textContent =
+          "Could not start microphone.";
+      }
     }
   </script>
 </body>
 </html>
-
-function speakBack() {
-  if (!("speechSynthesis" in window)) {
-    alert("Voice output is not supported.");
-    return;
-  }
-
-  const voice = new SpeechSynthesisUtterance(
-    "Hello! I am Samantha Gomez. I can hear you!"
-  );
-  voice.lang = "en-US";
-  voice.rate = 0.95;
-  speechSynthesis.cancel();
-  speechSynthesis.speak(voice);
-}
-speak back;
