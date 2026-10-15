@@ -3,605 +3,491 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#101827">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071426">
 <title>Samantha Gomez AI Assistant</title>
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;background:#101827;color:#fff;
- font-family:Arial,sans-serif;
-}
-main{max-width:760px;margin:auto;padding:20px 15px 50px}
-h1{text-align:center;color:#69b7ff;font-size:32px}
-.subtitle{text-align:center;color:#b9cce4}
-.panel{
- background:#17243a;border:1px solid #30425f;
- border-radius:16px;padding:18px;margin:15px 0;
-}
-button{
- background:#278bff;color:white;border:0;
- border-radius:12px;padding:13px 16px;
- font-size:16px;cursor:pointer;
-}
+body{margin:0;background:#071426;color:#fff;font-family:Arial,sans-serif}
+main{max-width:760px;margin:auto;padding:16px}
+h1{text-align:center;color:#79d9ff}
+h2{font-size:19px}
+p,small{line-height:1.5}
+small{color:#bdd0e3}
+.card{background:#14243b;border:1px solid #34516f;border-radius:18px;padding:16px;margin:14px 0}
+.center{text-align:center}
+.avatar{width:175px;height:175px;margin:18px auto;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#248fdf,#071426);border:4px solid #77dfff;box-shadow:0 0 35px #168fff80;animation:glow 3s infinite alternate}
+.avatar span{font-size:88px}
+.avatar.talking{animation:pulse .5s infinite alternate}
+@keyframes glow{to{box-shadow:0 0 55px #2bc9ff}}
+@keyframes pulse{to{transform:scale(1.06);box-shadow:0 0 65px #5bdfff}}
+button{background:#238cff;color:white;border:0;border-radius:11px;padding:12px 15px;font-size:15px;cursor:pointer}
 button:disabled{opacity:.5}
-.secondary{background:#344763}
-.controls{display:flex;gap:10px;flex-wrap:wrap}
-#status{color:#9cceff;font-weight:bold}
-#chat{
- height:330px;overflow-y:auto;
- display:flex;flex-direction:column;gap:10px;
-}
-.message{
- padding:12px;border-radius:12px;
- max-width:95%;white-space:pre-wrap;
- overflow-wrap:anywhere;line-height:1.5;
-}
-.user{align-self:flex-end;background:#205eaa}
-.assistant{align-self:flex-start;background:#30425f}
+.secondary{background:#344b68}
+.controls{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin:12px 0}
+#chat{height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.msg{padding:12px;border-radius:12px;max-width:95%;white-space:pre-wrap;overflow-wrap:anywhere}
+.user{align-self:flex-end;background:#215c9b}
+.assistant{align-self:flex-start;background:#344b68}
 form{display:flex;gap:8px;margin-top:12px}
-input[type=text]{
- flex:1;min-width:0;background:#0c1728;
- color:white;border:1px solid #49617e;
- border-radius:10px;padding:12px;font-size:16px;
-}
+input[type=text],input[type=url]{width:100%;min-width:0;background:#091a30;color:white;border:1px solid #52708c;border-radius:10px;padding:12px;font-size:16px}
+form input{flex:1}
 label{display:block;margin:12px 0}
-small{color:#bdcbe0;line-height:1.6}
-.feature{padding:7px 0;border-bottom:1px solid #30425f}
+#status{color:#81dcff;font-weight:bold}
+.preview{max-width:100%;max-height:280px;border-radius:12px;margin-top:12px}
+a{color:#81dcff}
 </style>
 </head>
 <body>
 <main>
-
 <h1>💙 Samantha Gomez</h1>
-<p class="subtitle">Your Personal AI Voice Assistant</p>
+<p class="center">Your Personal AI Voice Assistant</p>
 
-<section class="panel">
-<h2>🎤 Voice Assistant</h2>
+<section class="card center">
+<div id="avatar" class="avatar"><span>👩🏽‍💻</span></div>
+<h2>Samantha is here</h2>
 <p id="status" role="status">Ready</p>
-<p id="heard"><small>Tap the microphone to speak.</small></p>
-
+<p id="heard">Tap the microphone to speak.</p>
 <div class="controls">
 <button id="listen">🎤 Talk to Samantha</button>
 <button id="stop" class="secondary">■ Stop</button>
 <button id="voice" class="secondary">🔊 Voice On</button>
 </div>
-
-<label>
-<input id="wake" type="checkbox" checked>
-Require Samantha's name for voice commands
-</label>
-
-<small>
-Voice recognition requires microphone permission.
-Bluetooth audio routing is controlled by Android.
-</small>
+<label><input id="wake" type="checkbox" checked> Require Samantha's name for voice commands</label>
+<small>Microphone access requires browser permission. Bluetooth routing is controlled by Android.</small>
 </section>
 
-<section class="panel">
+<section class="card">
 <h2>💬 Conversation</h2>
 <div id="chat" role="log" aria-live="polite"></div>
-
 <form id="chatForm">
-<input id="message" type="text"
- placeholder="Ask Samantha anything..." required>
+<input id="message" type="text" placeholder="Ask Samantha anything..." required>
 <button type="submit">Send</button>
 </form>
-
-<div class="controls" style="margin-top:12px">
-<button id="clear" class="secondary">
-Clear Conversation
-</button>
+<div class="controls">
+<button id="clearChat" class="secondary">Clear Conversation</button>
 </div>
 </section>
 
-<section class="panel">
-<h2>🧠 Samantha's Capabilities</h2>
-<div class="feature">✓ Voice recognition</div>
-<div class="feature">✓ Spoken responses</div>
-<div class="feature">✓ Bluetooth audio when connected</div>
-<div class="feature">✓ Samantha wake-name detection</div>
-<div class="feature">✓ Stop command</div>
-<div class="feature">✓ Time and date</div>
-<div class="feature">✓ Calculator</div>
-<div class="feature">✓ Conversation history</div>
-<div class="feature">✓ Notes saved on this device</div>
-<div class="feature">✓ Basic help commands</div>
-<div class="feature">✓ Mobile-friendly interface</div>
-</section>
-
-<section class="panel">
-<h2>📝 Samantha's Notes</h2>
-<p><small>Notes are stored in this browser on this device.</small></p>
+<section class="card">
+<h2>🧠 Samantha's Memory</h2>
+<p>Say "Samantha, remember..." to save a note.</p>
 <div id="notes"></div>
-<button id="clearNotes" class="secondary">
-Clear Notes
-</button>
+<div class="controls">
+<button id="clearNotes" class="secondary">Clear Notes</button>
+</div>
 </section>
 
-<section class="panel">
-<h2>🔒 Security and Connections</h2>
-<p><small>
-This GitHub Pages version does not store API keys.
-Gmail, calendars, financial accounts, other AI services,
-and external databases are not connected.
-They require separate authorized integrations.
-</small></p>
-<p><small>
-The microphone works while supported by the browser.
-Continuous background listening, locked-screen listening,
-and operation with the phone powered off are not supported.
-</small></p>
+<section class="card">
+<h2>🖼️ Images</h2>
+<input id="imageInput" type="file" accept="image/*">
+<div id="images"></div>
+<small>Images can be previewed here. Understanding image contents requires a compatible AI server.</small>
 </section>
 
+<section class="card">
+<h2>🌐 Research and Connections</h2>
+<div class="controls">
+<button id="webSearch">Web Search</button>
+<button id="github">GitHub</button>
+<button id="gmail">Gmail</button>
+<button id="calendar">Calendar</button>
+</div>
+<small>These open websites. They do not automatically connect private accounts.</small>
+</section>
+
+<section class="card">
+<h2>⚙️ Secure AI Connection</h2>
+<label for="endpoint">Your AI server URL</label>
+<input id="endpoint" type="url" placeholder="https://your-server.example/api/chat">
+<div class="controls">
+<button id="saveEndpoint">Save Connection</button>
+</div>
+<small>Never put an OpenAI API key in this page. A secure server must keep the key private, authorize requests, and return JSON containing a "reply" field.</small>
+</section>
+
+<section class="card">
+<h2>✨ Capabilities</h2>
+<p>Voice recognition • Spoken replies • Animated avatar • Bluetooth-compatible audio • Wake-name commands • Local memory • Chat history • Notes • Image previews • Web search shortcuts • Optional AI connection</p>
+<small>General AI responses need a working secure server. This browser page cannot independently access Gmail, learn from other AI systems, run while the phone is powered off, or listen continuously with the screen locked.</small>
+</section>
 </main>
 
 <script>
 "use strict";
 
-const $ = id => document.getElementById(id);
+const $=id=>document.getElementById(id);
+const SpeechRecognition=
+ window.SpeechRecognition||window.webkitSpeechRecognition;
 
-const SpeechRecognition =
- window.SpeechRecognition ||
- window.webkitSpeechRecognition;
+function load(key){
+ try{
+  const value=JSON.parse(localStorage.getItem(key));
+  return Array.isArray(value)?value:[];
+ }catch{return []}
+}
 
-let recognition = null;
-let listening = false;
-let speaking = true;
-let busy = false;
-let generation = 0;
+let history=load("samantha_history");
+let notes=load("samantha_notes");
+let endpoint=localStorage.getItem("samantha_endpoint")||"";
+let recognition=null;
+let listening=false;
+let speaking=true;
+let busy=false;
+let generation=0;
 
-function loadJSON(key, fallback) {
- try {
-  const data = JSON.parse(localStorage.getItem(key));
-  return Array.isArray(data) ? data : fallback;
- } catch {
-  return fallback;
+$("endpoint").value=endpoint;
+
+function save(){
+ try{
+  localStorage.setItem("samantha_history",JSON.stringify(history.slice(-100)));
+  localStorage.setItem("samantha_notes",JSON.stringify(notes));
+ }catch{}
+}
+
+function status(message){
+ $("status").textContent=message;
+}
+
+function addMessage(role,text,store=true){
+ const div=document.createElement("div");
+ div.className="msg "+role;
+ div.textContent=(role==="user"?"You: ":"Samantha: ")+text;
+ $("chat").appendChild(div);
+ $("chat").scrollTop=$("chat").scrollHeight;
+ if(store){
+  history.push({role,text});
+  history=history.slice(-100);
+  save();
  }
 }
 
-let history = loadJSON("samantha_history", []);
-let notes = loadJSON("samantha_notes", []);
-
-function saveHistory() {
- try {
-  localStorage.setItem(
-   "samantha_history",
-   JSON.stringify(history.slice(-100))
-  );
- } catch {}
-}
-
-function saveNotes() {
- try {
-  localStorage.setItem(
-   "samantha_notes",
-   JSON.stringify(notes)
-  );
- } catch {}
-}
-
-function setStatus(text) {
- $("status").textContent = text;
-}
-
-function addMessage(role, text, save = true) {
- const item = document.createElement("div");
- item.className = "message " + role;
- item.textContent =
-  (role === "user" ? "You: " : "Samantha: ") + text;
-
- $("chat").appendChild(item);
- $("chat").scrollTop = $("chat").scrollHeight;
-
- if (save) {
-  history.push({role, text});
-  history = history.slice(-100);
-  saveHistory();
- }
-}
-
-function speak(text) {
- if (!speaking || !window.speechSynthesis) return;
-
- speechSynthesis.cancel();
-
- const utterance = new SpeechSynthesisUtterance(text);
- utterance.lang = "en-US";
- utterance.rate = 0.95;
- utterance.pitch = 1.1;
- utterance.volume = 1;
-
- const voices = speechSynthesis.getVoices();
-
- const preferred = voices.find(v =>
-  v.lang.startsWith("en") &&
-  /samantha|zira|jenny|aria|female/i.test(v.name)
- );
-
- if (preferred) utterance.voice = preferred;
-
- speechSynthesis.speak(utterance);
-}
-
-function stopSamantha() {
- generation++;
- busy = false;
-
- if (recognition && listening) {
-  recognition.abort();
- }
-
- listening = false;
-
- if (window.speechSynthesis) {
-  speechSynthesis.cancel();
- }
-
- $("listen").disabled = false;
- setStatus("Stopped");
-}
-
-function showNotes() {
- const container = $("notes");
- container.replaceChildren();
-
- if (!notes.length) {
-  container.textContent = "No notes saved yet.";
+function showNotes(){
+ $("notes").replaceChildren();
+ if(!notes.length){
+  $("notes").textContent="No notes saved yet.";
   return;
  }
-
- notes.forEach((note, index) => {
-  const p = document.createElement("p");
-  p.textContent = (index + 1) + ". " + note;
-  container.appendChild(p);
+ notes.forEach((note,i)=>{
+  const p=document.createElement("p");
+  p.textContent=(i+1)+". "+note;
+  $("notes").appendChild(p);
  });
 }
 
-function calculate(expression) {
- const cleaned = expression
-  .replace(/×/g, "*")
-  .replace(/÷/g, "/")
-  .replace(/\s+/g, "");
-
- if (!/^[0-9+\-*/().%]+$/.test(cleaned)) {
-  return null;
- }
-
- const tokens = cleaned.match(
-  /\d+(?:\.\d+)?|[()+\-*/%]/g
+function speak(text){
+ if(!speaking||!("speechSynthesis" in window))return;
+ speechSynthesis.cancel();
+ const utterance=new SpeechSynthesisUtterance(text);
+ utterance.lang="en-US";
+ utterance.rate=.95;
+ utterance.pitch=1.1;
+ const voices=speechSynthesis.getVoices();
+ const preferred=voices.find(v=>
+  v.lang.startsWith("en")&&
+  /samantha|zira|jenny|aria|female/i.test(v.name)
  );
+ if(preferred)utterance.voice=preferred;
+ utterance.onstart=()=>$("avatar").classList.add("talking");
+ utterance.onend=()=>$("avatar").classList.remove("talking");
+ utterance.onerror=()=>$("avatar").classList.remove("talking");
+ speechSynthesis.speak(utterance);
+}
 
- if (!tokens || tokens.join("") !== cleaned) {
-  return null;
+function stopSamantha(){
+ generation++;
+ busy=false;
+ if(recognition){
+  try{recognition.abort()}catch{}
  }
+ listening=false;
+ speechSynthesis.cancel();
+ $("avatar").classList.remove("talking");
+ $("listen").disabled=false;
+ status("Stopped");
+}
 
- let pos = 0;
-
- function factor() {
-  const token = tokens[pos];
-
-  if (token === "+" || token === "-") {
+function calculate(raw){
+ const s=raw.replace(/×/g,"*").replace(/÷/g,"/").replace(/\s/g,"");
+ const tokens=s.match(/\d+(?:\.\d+)?|[()+\-*/%]/g);
+ if(!tokens||tokens.join("")!==s)return null;
+ let pos=0;
+ function factor(){
+  const t=tokens[pos];
+  if(t==="+"||t==="-"){
    pos++;
-   const value = factor();
-   return token === "-" ? -value : value;
+   const n=factor();
+   return t==="-"?-n:n;
   }
-
-  if (token === "(") {
+  if(t==="("){
    pos++;
-   const value = expressionValue();
-   if (tokens[pos++] !== ")") throw Error();
-   return value;
+   const n=expression();
+   if(tokens[pos++]!==")")throw Error();
+   return n;
   }
-
-  if (!/^\d/.test(token || "")) throw Error();
-
+  if(!/^\d/.test(t||""))throw Error();
   pos++;
-  return Number(token);
+  return Number(t);
  }
-
- function term() {
-  let value = factor();
-
-  while (["*", "/", "%"].includes(tokens[pos])) {
-   const operator = tokens[pos++];
-   const right = factor();
-
-   if (operator === "*") value *= right;
-   if (operator === "/") value /= right;
-   if (operator === "%") value %= right;
+ function term(){
+  let n=factor();
+  while(["*","/","%"].includes(tokens[pos])){
+   const op=tokens[pos++];
+   const b=factor();
+   if(op==="*")n*=b;
+   if(op==="/")n/=b;
+   if(op==="%")n%=b;
   }
-
-  return value;
+  return n;
  }
-
- function expressionValue() {
-  let value = term();
-
-  while (["+", "-"].includes(tokens[pos])) {
-   const operator = tokens[pos++];
-   const right = term();
-
-   value = operator === "+"
-    ? value + right
-    : value - right;
+ function expression(){
+  let n=term();
+  while(["+","-"].includes(tokens[pos])){
+   const op=tokens[pos++];
+   const b=term();
+   n=op==="+"?n+b:n-b;
   }
-
-  return value;
+  return n;
  }
-
- try {
-  const result = expressionValue();
-
-  if (pos !== tokens.length ||
-      !Number.isFinite(result)) {
-   return null;
-  }
-
-  return result;
- } catch {
-  return null;
- }
+ try{
+  const result=expression();
+  return pos===tokens.length&&Number.isFinite(result)?result:null;
+ }catch{return null}
 }
 
-function answer(question) {
- const q = question.trim();
- const lower = q.toLowerCase();
+function builtInAnswer(q){
+ const lower=q.toLowerCase().trim();
 
- if (/^(hello|hi|hey|good morning|good evening)[!. ]*$/.test(lower)) {
-  return "Hello! I'm Samantha Gomez. What would you like help with?";
- }
+ if(/^(hi|hello|hey|good morning|good evening)[!. ]*$/.test(lower))
+  return "Hey! I'm Samantha Gomez. What would you like help with?";
 
- if (/\bwhat time\b|\btell me the time\b|\bcurrent time\b/.test(lower)) {
-  return "The time is " +
-   new Date().toLocaleTimeString([], {
-    hour:"numeric",
-    minute:"2-digit"
-   });
- }
+ if(/who are you|what is your name/.test(lower))
+  return "I'm Samantha Gomez, your personal AI voice assistant.";
 
- if (/\bwhat date\b|\bwhat day\b|\btoday's date\b/.test(lower)) {
-  return "Today is " +
-   new Date().toLocaleDateString([], {
-    weekday:"long",
-    year:"numeric",
-    month:"long",
-    day:"numeric"
-   });
- }
+ if(/what time|current time/.test(lower))
+  return "The time is "+new Date().toLocaleTimeString([],{
+   hour:"numeric",minute:"2-digit"
+  });
 
- if (/\bwho are you\b|\bwhat is your name\b/.test(lower)) {
-  return "I'm Samantha Gomez, your personal voice assistant.";
- }
+ if(/what date|what day|today's date/.test(lower))
+  return "Today is "+new Date().toLocaleDateString([],{
+   weekday:"long",year:"numeric",month:"long",day:"numeric"
+  });
 
- if (/^(remember|save note|take a note)\s+(.+)/i.test(q)) {
-  const note = q.replace(
-   /^(remember|save note|take a note)\s+/i, ""
-  );
-
-  notes.push(note);
-  saveNotes();
+ if(/^(remember|save note|take a note)\s+(.+)/i.test(q)){
+  notes.push(q.replace(/^(remember|save note|take a note)\s+/i,""));
+  save();
   showNotes();
-
-  return "I saved that note on this device.";
+  return "I saved that in my notes.";
  }
 
- if (/^(show notes|read my notes|what did you remember)[?.! ]*$/i.test(q)) {
-  if (!notes.length) return "You have no saved notes.";
+ if(/^(show notes|read my notes|what did you remember)[?.! ]*$/i.test(q))
+  return notes.length?"Your notes are: "+notes.join(". "):"You have no saved notes.";
 
-  return "Your notes are: " + notes.join(". ");
+ const match=q.match(/^(?:calculate|what is|what's)\s+([0-9+\-*/().% ×÷]+)\??$/i);
+ if(match){
+  const result=calculate(match[1]);
+  return result===null?"I couldn't calculate that.":"The answer is "+result;
  }
 
- if (/^(clear notes|delete my notes)[?.! ]*$/i.test(q)) {
-  return "Use the Clear Notes button to delete your saved notes.";
- }
+ if(/what can you do|help/.test(lower))
+  return "I can talk, listen, remember notes, keep conversation history, tell the time, calculate math, and open research tools. A secure AI server lets me answer more questions.";
 
- const mathMatch = q.match(
-  /^(?:calculate|what is|what's)\s+([0-9+\-*/().% ×÷]+)\??$/i
- );
-
- if (mathMatch) {
-  const result = calculate(mathMatch[1]);
-
-  return result === null
-   ? "I couldn't calculate that expression."
-   : "The answer is " + result;
- }
-
- if (/\bhelp\b|\bwhat can you do\b/.test(lower)) {
-  return "I can listen and speak, tell the time and date, calculate basic math, save notes, and keep conversation history on this device. General AI answers require an additional AI service.";
- }
-
- if (/\bbluetooth\b/.test(lower)) {
-  return "Connect your earbuds in Android Bluetooth settings. My voice will use the audio output selected by your phone.";
- }
-
- if (/\bgmail\b|\bemail\b/.test(lower)) {
-  return "I cannot access Gmail from this website yet. That requires a secure authorized connection.";
- }
-
- if (/\bcalendar\b|\bappointment\b/.test(lower)) {
-  return "Calendar access is not connected yet. I can help you plan, but I cannot create appointments from this website.";
- }
-
- return "I heard your question: " + q +
-  ". My built-in commands are working, but I need a secure AI service to answer general questions intelligently.";
+ return null;
 }
 
-async function askSamantha(raw, fromVoice = false) {
- if (busy) return;
+async function getAnswer(question){
+ const local=builtInAnswer(question);
+ if(local!==null)return local;
 
- let question = raw.trim();
- if (!question) return;
+ if(!endpoint)
+  return "I heard your question. My voice and chat are working, but I need my secure AI server connected to answer general questions.";
 
- if (fromVoice && $("wake").checked) {
-  if (!/^(hey\s+)?samantha\b/i.test(question)) {
-   setStatus('Waiting for "Samantha"');
+ const controller=new AbortController();
+ const timeout=setTimeout(()=>controller.abort(),20000);
+
+ try{
+  const response=await fetch(endpoint,{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+    message:question,
+    history:history.slice(-20),
+    assistant:"Samantha Gomez"
+   }),
+   signal:controller.signal
+  });
+  if(!response.ok)throw Error("Server returned "+response.status);
+  const data=await response.json();
+  if(typeof data.reply!=="string"||!data.reply.trim())
+   throw Error("Missing reply");
+  return data.reply;
+ }catch(error){
+  return "I couldn't reach my AI server. "+error.message+
+   ". My built-in commands are still available.";
+ }finally{
+  clearTimeout(timeout);
+ }
+}
+
+async function askSamantha(raw,fromVoice=false){
+ if(busy)return;
+ let question=raw.trim();
+ if(!question)return;
+
+ if(fromVoice&&$("wake").checked){
+  if(!/^(hey\s+)?samantha\b/i.test(question)){
+   status('Waiting for "Samantha"');
    return;
   }
-
-  question = question.replace(
-   /^(hey\s+)?samantha\b[\s,!.?:-]*/i, ""
+  question=question.replace(
+   /^(hey\s+)?samantha\b[\s,!.?:-]*/i,""
   ).trim();
  }
 
- if (!question) {
-  addMessage("assistant", "Yes, I'm listening.");
+ if(!question){
+  addMessage("assistant","Yes, I'm listening.");
   speak("Yes, I'm listening.");
   return;
  }
 
- $("heard").textContent = "You said: " + raw;
+ $("heard").textContent="You said: "+raw;
 
- if (/^(stop|stop listening|be quiet|cancel)$/i.test(question)) {
+ if(/^(stop|stop listening|be quiet|cancel)$/i.test(question)){
   stopSamantha();
   return;
  }
 
- busy = true;
- const current = generation;
+ busy=true;
+ const current=++generation;
+ addMessage("user",question);
+ status("Thinking...");
 
- addMessage("user", question);
- setStatus("Thinking...");
-
- try {
-  const reply = answer(question);
-
-  if (current !== generation) return;
-
-  addMessage("assistant", reply);
+ try{
+  const reply=await getAnswer(question);
+  if(current!==generation)return;
+  addMessage("assistant",reply);
   speak(reply);
-  setStatus("Ready");
- } catch {
-  if (current === generation) {
-   addMessage(
-    "assistant",
-    "Something went wrong. Please try again."
-   );
-   setStatus("Error");
+  status("Ready");
+ }catch{
+  if(current===generation){
+   addMessage("assistant","Something went wrong. Please try again.");
+   status("Error");
   }
- } finally {
-  busy = false;
+ }finally{
+  if(current===generation)busy=false;
  }
 }
 
-function startListening() {
- if (!SpeechRecognition) {
-  setStatus(
-   "Speech recognition is not supported in this browser."
-  );
+function startListening(){
+ if(!SpeechRecognition){
+  status("Speech recognition is not supported in this browser.");
   return;
  }
+ if(listening||busy)return;
 
- if (listening || busy) return;
+ speechSynthesis.cancel();
+ recognition=new SpeechRecognition();
+ recognition.lang="en-US";
+ recognition.continuous=false;
+ recognition.interimResults=false;
 
- if (window.speechSynthesis) {
-  speechSynthesis.cancel();
- }
-
- recognition = new SpeechRecognition();
- recognition.lang = "en-US";
- recognition.continuous = false;
- recognition.interimResults = false;
-
- recognition.onstart = () => {
-  listening = true;
-  $("listen").disabled = true;
-  setStatus("🎤 Listening...");
+ recognition.onstart=()=>{
+  listening=true;
+  $("listen").disabled=true;
+  status("🎤 Listening...");
  };
 
- recognition.onresult = event => {
-  const words = event.results[0][0].transcript;
-  askSamantha(words, true);
+ recognition.onresult=event=>{
+  const words=event.results[0][0].transcript;
+  askSamantha(words,true);
  };
 
- recognition.onerror = event => {
-  setStatus("Microphone error: " + event.error);
+ recognition.onerror=event=>{
+  status("Microphone error: "+event.error);
  };
 
- recognition.onend = () => {
-  listening = false;
-  $("listen").disabled = false;
-
-  if ($("status").textContent === "🎤 Listening...") {
-   setStatus("Ready — tap to speak again");
-  }
+ recognition.onend=()=>{
+  listening=false;
+  $("listen").disabled=false;
+  if($("status").textContent==="🎤 Listening...")
+   status("Ready — tap to speak again");
  };
 
- try {
-  recognition.start();
- } catch {
-  setStatus("Could not start the microphone.");
- }
+ try{recognition.start()}
+ catch{status("Could not start microphone.")}
 }
 
-$("listen").addEventListener("click", startListening);
-$("stop").addEventListener("click", stopSamantha);
+$("listen").onclick=startListening;
+$("stop").onclick=stopSamantha;
 
-$("voice").addEventListener("click", () => {
- speaking = !speaking;
+$("voice").onclick=()=>{
+ speaking=!speaking;
+ $("voice").textContent=speaking?"🔊 Voice On":"🔇 Voice Off";
+ if(!speaking)speechSynthesis.cancel();
+};
 
- $("voice").textContent = speaking
-  ? "🔊 Voice On"
-  : "🔇 Voice Off";
-
- if (!speaking && window.speechSynthesis) {
-  speechSynthesis.cancel();
- }
-});
-
-$("chatForm").addEventListener("submit", event => {
+$("chatForm").onsubmit=event=>{
  event.preventDefault();
+ const text=$("message").value;
+ $("message").value="";
+ askSamantha(text);
+};
 
- const message = $("message").value;
- $("message").value = "";
+$("clearChat").onclick=()=>{
+ if(!confirm("Clear saved conversation history?"))return;
+ history=[];
+ save();
+ $("chat").replaceChildren();
+ addMessage("assistant","Conversation cleared. I'm ready.");
+};
 
- askSamantha(message);
-});
+$("clearNotes").onclick=()=>{
+ if(!confirm("Clear all saved notes?"))return;
+ notes=[];
+ save();
+ showNotes();
+};
 
-$("clear").addEventListener("click", () => {
- if (!confirm("Delete conversation history on this device?")) {
+$("imageInput").onchange=event=>{
+ const file=event.target.files[0];
+ if(!file||!file.type.startsWith("image/"))return;
+ const url=URL.createObjectURL(file);
+ const img=document.createElement("img");
+ img.className="preview";
+ img.alt="Selected image";
+ img.onload=()=>URL.revokeObjectURL(url);
+ img.src=url;
+ $("images").replaceChildren(img);
+ addMessage("assistant","Your image is displayed. Image analysis requires an AI server that supports images.");
+};
+
+$("webSearch").onclick=()=>window.open("https://www.google.com","_blank","noopener");
+$("github").onclick=()=>window.open("https://github.com/christopherfullilove2-hue/Samantha-gomes","_blank","noopener");
+$("gmail").onclick=()=>window.open("https://mail.google.com","_blank","noopener");
+$("calendar").onclick=()=>window.open("https://calendar.google.com","_blank","noopener");
+
+$("saveEndpoint").onclick=()=>{
+ const value=$("endpoint").value.trim();
+ if(value&&!/^https:\/\/[^ ]+/i.test(value)){
+  status("Enter a valid HTTPS server URL.");
   return;
  }
+ endpoint=value;
+ localStorage.setItem("samantha_endpoint",endpoint);
+ status(endpoint?"AI server URL saved":"Using built-in commands");
+};
 
- history = [];
- saveHistory();
- $("chat").replaceChildren();
-
- addMessage(
-  "assistant",
-  "Conversation cleared. I'm ready."
- );
-});
-
-$("clearNotes").addEventListener("click", () => {
- if (!confirm("Delete all saved notes?")) return;
-
- notes = [];
- saveNotes();
- showNotes();
-});
-
-history.forEach(item => {
- if (
-  item &&
-  ["user", "assistant"].includes(item.role) &&
-  typeof item.text === "string"
- ) {
-  addMessage(item.role, item.text, false);
- }
+history.forEach(item=>{
+ if(item&&["user","assistant"].includes(item.role)&&typeof item.text==="string")
+  addMessage(item.role,item.text,false);
 });
 
 showNotes();
 
-if (!history.length) {
- addMessage(
-  "assistant",
-  "Hello! I'm Samantha Gomez. Tap Talk to Samantha or type a message to begin."
- );
-}
+if(!history.length)
+ addMessage("assistant","Hello! I'm Samantha Gomez. Tap Talk to Samantha or type your question.");
 
 </script>
 </body>
 </html>
-
